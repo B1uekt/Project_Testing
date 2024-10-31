@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.action_chains import ActionChains
 @pytest.fixture
 def driver():
     driver = webdriver.Chrome()
@@ -51,6 +52,37 @@ def test_login_with_valid_data(driver):
     account_header = driver.find_element(By.XPATH, "//h1[normalize-space()='Account Logout']")
     assert account_header.is_displayed()
 
+def test_login_with_invalid_data(driver):
+
+    driver.get("https://demo.opencart.com/")
+
+    # lấy ra my account element dưới phần footer
+    my_account_link = driver.find_element(By.XPATH, "//a[contains(@href, 'route=account/account')]")
+    # thực hiện câu lệnh này để cuộn trang đến element được chỉ định
+    driver.execute_script("arguments[0].scrollIntoView();", my_account_link)
+    # xử lý popup đã ngăn chặn hành động click vào my account element
+    try:
+        close_button = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'close-button-class')]"))
+        )
+        close_button.click()
+    except Exception:
+        pass  # Nếu không có popup, tiếp tục
+
+    my_account_link.click()
+    time.sleep(20)
+    # truyền vào email và password
+    driver.find_element(By.ID, "input-email").send_keys("admin@gmail.com")
+    driver.find_element(By.ID, "input-password").send_keys("1")
+    driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
+    time.sleep(3)
+    # chọn ra message element
+    error_message_element = driver.find_element(By.CSS_SELECTOR, ".alert.alert-danger.alert-dismissible")
+    error_message = error_message_element.text
+    time.sleep(3)
+    # so sánh với nội dung của message đã lấy ra
+    assert "Warning: No match for E-Mail Address and/or Password." in error_message
+
 def test_form_submission(driver):
 
     driver.get("https://demo.opencart.com/")
@@ -93,64 +125,55 @@ def test_form_submission(driver):
     product_returns = driver.find_element(By.XPATH, "//h1[normalize-space()='Product Returns']")
     assert product_returns.is_displayed()
 
-# def test_link(driver):
-#     home_page = "https://demo.opencart.com/"
-#     driver.get(home_page)
-#     links = driver.find_elements(By.TAG_NAME, "a")
-#
-#     for link in links:
-#         url = link.get_attribute("href")
-#         print(f"Checking: {url}")
-#
-#         if url is None or url == "":
-#             print("URL is either not configured for anchor tag or it is empty")
-#             continue
-#
-#         if not url.startswith(home_page):
-#             print(f"URL belongs to another domain, skipping it: {url}")
-#             continue
-#
-#         try:
-#             response = requests.head(url, allow_redirects=True)
-#
-#             if response.status_code >= 400:
-#                 print(f"{url} is a broken link")
-#             else:
-#                 print(f"{url} is a valid link")
-#
-#         except requests.exceptions.RequestException as e:
-#             print(f"Error checking {url}: {e}")
-
-def test_login_with_invalid_data(driver):
-
+def test_navigation(driver):
     driver.get("https://demo.opencart.com/")
-
-    # lấy ra my account element dưới phần footer
-    my_account_link = driver.find_element(By.XPATH, "//a[contains(@href, 'route=account/account')]")
-    # thực hiện câu lệnh này để cuộn trang đến element được chỉ định
-    driver.execute_script("arguments[0].scrollIntoView();", my_account_link)
-    # xử lý popup đã ngăn chặn hành động click vào my account element
-    try:
-        close_button = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'close-button-class')]"))
-        )
-        close_button.click()
-    except Exception:
-        pass  # Nếu không có popup, tiếp tục
-
-    my_account_link.click()
-    time.sleep(20)
-    # truyền vào email và password
-    driver.find_element(By.ID, "input-email").send_keys("admin@gmail.com")
-    driver.find_element(By.ID, "input-password").send_keys("1")
-    driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
     time.sleep(3)
-    # chọn ra message element
-    error_message_element = driver.find_element(By.CSS_SELECTOR, ".alert.alert-danger.alert-dismissible")
-    error_message = error_message_element.text
-    time.sleep(3)
-    # so sánh với nội dung của message đã lấy ra
-    assert "Warning: No match for E-Mail Address and/or Password." in error_message
+    # Chọn vào Desktop element để chuyển sang trang Desktop
+    desktop_menu = driver.find_element(By.LINK_TEXT, "Desktops")
+    desktop_menu.click()
+    mac_option = driver.find_element(By.LINK_TEXT, "Mac (1)")
+    mac_option.click()
+    time.sleep(10)
+
+    # Chọn vào Laptops & Notebooks element để chuyển sang trang Laptops & Notebooks
+    lap_note_menu = driver.find_element(By.LINK_TEXT, "Laptops & Notebooks")
+    lap_note_menu.click()
+    time.sleep(5)
+
+
+    # Chọn vào Components element để chuyển sang trang Components
+    components_menu = driver.find_element(By.LINK_TEXT, "Components")
+    components_menu.click()
+    time.sleep(5)
+    driver.find_element(By.LINK_TEXT, "Show All Components").click()
+    time.sleep(5)
+
+    # Chọn vào Tablets element để chuyển sang trang Tablets
+    tablets_menu = driver.find_element(By.LINK_TEXT, "Tablets")
+    tablets_menu.click()
+    time.sleep(5)
+
+    # Chọn vào Software element để chuyển sang trang Software
+    tablets_menu = driver.find_element(By.LINK_TEXT, "Software")
+    tablets_menu.click()
+    time.sleep(5)
+
+    # Chọn vào Phones & PDAs element để chuyển sang trang Phones & PDAs
+    p_PDA_menu = driver.find_element(By.LINK_TEXT, "Phones & PDAs")
+    p_PDA_menu.click()
+    time.sleep(5)
+
+    # Chọn vào Cameras element để chuyển sang trang Cameras
+    p_PDA_menu = driver.find_element(By.LINK_TEXT, "Cameras")
+    p_PDA_menu.click()
+    time.sleep(5)
+
+    # Chọn vào MP3 Players element để chuyển sang trang MP3 Players
+    mp3_menu = driver.find_element(By.LINK_TEXT, "MP3 Players")
+    mp3_menu.click()
+    time.sleep(5)
+    driver.find_element(By.LINK_TEXT, "Show All MP3 Players").click()
+    time.sleep(5)
 
 def test_search_functionality(driver):
     driver.get("https://demo.opencart.com/")
